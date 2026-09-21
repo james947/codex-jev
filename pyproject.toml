@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codex-jev-router"
+version = "0.1.0"
+description = "Opt-in per-request Jev routing for the native Codex terminal UI"
+requires-python = ">=3.11"
+dependencies = ["websockets==15.0.1"]
+
+[project.scripts]
+codex-jev = "codex_jev.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
