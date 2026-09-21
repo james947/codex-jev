@@ -1,17 +1,52 @@
-# Codex Jev router
+# codex-jev
 
-An opt-in launcher for the normal Codex terminal UI. Jev chooses Sol low or Sol medium when a new chat request starts. Codex handles the conversation, tools, sandbox, and approvals as usual. This prototype does not modify your global Codex configuration.
+Codex limits run out fast when every prompt gets the same effort. `codex-jev` puts [Jev](https://typesafe.ai) (TypeSafe's fast classification model) in front of Codex, so each prompt gets only the effort it needs.
 
-## Start
+## How it works
 
-Requires Python 3.11+ and Codex CLI. Developed and smoke-tested with Codex 0.155.1 on macOS. The app-server interface is experimental; recheck compatibility after upgrades.
+1. You use Codex exactly as usual.
+2. Before each prompt runs, Jev reads it and decides how hard it is.
+3. The router tells Codex which model and effort to use for that prompt.
 
-The local installation already has its own `.venv`. From this directory:
+| You type | Runs on |
+| --- | --- |
+| "what does this function do?" | Sol low |
+| "find the run_turn method" | Sol low |
+| "commit and push the tested changes" | Sol low |
+| "fix the failing lint in cli.py" | Sol medium |
+| "why are users getting duplicate SMS? figure it out" | Sol medium |
+
+If Jev isn't sure, or it can't see everything (like an attached image), the prompt goes to Sol medium to be safe. The chosen route shows up above each reply, e.g. `⚠ Jev router: gpt-5.6-sol / low`.
+
+## Quick start
+
+Requires Python 3.11+ and the Codex CLI. Tested with Codex 0.155.1 on macOS.
 
 ```sh
-source .venv/bin/activate
-codex-jev run --cwd /path/to/your/project
+git clone https://github.com/james947/codex-jev.git && cd codex-jev
+python3 -m venv .venv && .venv/bin/pip install -e .
+export TYPESAFE_API_KEY=...        # from https://console.typesafe.ai
+.venv/bin/codex-jev run --cwd /path/to/your/project
 ```
+
+To make plain `codex` use the router, add this to `~/.zshrc`:
+
+```zsh
+function codex() {
+  case "$1" in
+    exec|e|login|logout|mcp|mcp-server|app-server|completion|sandbox|debug|apply|cloud|features|update|doctor|help|--help|-h|--version|-V)
+      command codex "$@" ;;
+    *)
+      /path/to/codex-jev/.venv/bin/codex-jev run --cwd "$PWD" -- "$@" ;;
+  esac
+}
+```
+
+`command codex` still opens Codex without the router.
+
+## Details
+
+The rest of this page covers the details. `codex-jev` is an opt-in launcher for the normal Codex terminal UI. Codex handles the conversation, tools, sandbox, and approvals as usual, and your global Codex configuration is not modified. The app-server interface it relies on is experimental, so recheck compatibility after Codex upgrades.
 
 Automatic mode requires `TYPESAFE_API_KEY` in the launcher's environment. Obtain a key from the [TypeSafe console](https://console.typesafe.ai/) and load it locally through your preferred secret store. Do not put it in this repository or paste it into chat. The launcher removes that variable from the environment passed to Codex and its tools.
 
