@@ -59,7 +59,7 @@ Want to tweak the routes? It's all in [`src/codex_jev/policy.py`](src/codex_jev/
 ## Good to know
 
 - **Jev only sees your messages.** It gets your current prompt and your previous one, not Codex's replies, your files, or tool output. So vague follow-ups like "yes do it" can land on medium.
-- **Switching models costs a cache miss.** The first turn on a new route re-reads the conversation.
+- **Switching effort takes a small cache hit, not a full one.** sol-low and sol-medium are the same model, so a route change doesn't wipe the cache the way switching models would. It just reads a bit less from it on that turn.
 - **Your key stays out of Codex.** The launcher strips `TYPESAFE_API_KEY` before starting Codex.
 - **There's a log.** Routes and token counts (no prompt text) go to `~/.local/state/codex-jev-router/decisions.jsonl`.
 - **It's a prototype.** It relies on Codex's experimental app-server protocol (tested on Codex 0.155.1, macOS), so a Codex update could break it. I haven't measured the actual savings yet, it just feels a lot better.
